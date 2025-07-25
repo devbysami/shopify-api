@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  shopify-django:
+    container_name: shopify-django
+    build:
+        context: .
+        dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:2020
+    volumes:
+        - ./shopify-api/shopify_api/:/usr/src/app
+    environment:
+        - CELERY_BROKER=redis://shopify-redis:6379/0
+        - CELERY_BACKEND=redis://shopify-redis:6379/0
+    ports:
+        - 2020:2020
+    depends_on:
+        - shopify-psql
+        - shopify-redis
+    networks:
+        - shopify-network
+
+  shopify-psql:
+    image: postgres:13
+    container_name: shopify-psql
+    environment:
+        - POSTGRES_USER=shopify_user
+        - POSTGRES_PASSWORD=OLLrI@Gvc}2(8k
+        - POSTGRES_DB=shopify_db
+        - POSTGRES_PORT=5432
+    volumes:
+        - ./shopify_db_data:/var/lib/postgresql/data
+        - ./pgsql_dump:/home/dump
+    
+    networks:
+        - shopify-network
+
+  shopify-redis:
+    image: redis:alpine
+    container_name: shopify-redis
+    networks:
+        - shopify-network
+
+networks:
+  shopify-network:
+    driver: bridge

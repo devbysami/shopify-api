@@ -8,7 +8,7 @@ services:
         dockerfile: Dockerfile
     command: python manage.py runserver 0.0.0.0:2020
     volumes:
-        - ./shopify-api/shopify_api/:/usr/src/app
+        - ./shopify_api/:/usr/src/app
     environment:
         - CELERY_BROKER=redis://shopify-redis:6379/0
         - CELERY_BACKEND=redis://shopify-redis:6379/0

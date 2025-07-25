@@ -1,0 +1,10 @@
+Django>=3.2,<4.0
+psycopg2>=2.9
+django-rest-framework
+celery>=5.0
+redis>=4.0
+gunicorn>=20.0
+django-celery-beat
+ipython==7.16.3
+pandas==1.1.5
+openpyxl==3.1.3

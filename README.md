@@ -12,12 +12,19 @@ This repository contains the implementation of a backend system using **Python**
 
 The following CRUD operations are available for managing products:
 
-- **GET /products/**: List all products or filter by price, SKU, name, or quantity.
+- **GET /products/**:  List all products or filter by price, SKU, name, or quantity.
+  Token Authentication required.
+  This endpoint also requires the user to belong to the "Read Product" group (with the appropriate meta permission: can_view_product) to access.
 - **POST /products/**: Create a new product.
-- **GET /products/search/?q=...**: Search for products using semantic similarity based on the product name using **spaCy** or **Sentence-Transformers**.
+  Token Authentication required.
+  This endpoint requires the user to belong to the "Read Product" group (with the appropriate meta permission: can_edit_product) to access.
+- **GET /products/search/?q=...**: Search for products using semantic similarity based on the product name using **spaCy**.
+  Token Authentication required.
 
 ### 2. **Webhook Endpoint**
 - **PUT /webhooks/update-stock/**: Handle inventory updates from Shopify, updating the product quantity based on the payload received from the webhook.
+  Token Authentication required.
+  This endpoint requires the user to belong to the "Product Edit" group (with the appropriate meta permission: can_edit_product) to access.
 
 ### 3. **Admin Interface Customization**
 

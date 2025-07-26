@@ -1,0 +1,23 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+    <h2>{{ title }}</h2>
+
+    <form method="post" action="{% url 'admin:apply_discount' %}">
+        {% csrf_token %}
+
+        {% for product in queryset %}
+            <input type="hidden" name="_selected_action" value="{{ product.id }}">
+        {% endfor %}
+
+        {{ form.as_p }}
+        <button type="submit" name="apply_discount" class="btn btn-primary">Apply Discount</button>
+    </form>
+
+    <h3>Selected Products:</h3>
+    <ul>
+        {% for product in queryset %}
+            <li>{{ product.name }} (SKU: {{ product.sku }}, Price: {{ product.price }})</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

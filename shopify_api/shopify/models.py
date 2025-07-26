@@ -8,6 +8,7 @@ class Product(models.Model):
     sku = models.CharField(max_length=256, db_index=True)
     price = models.PositiveIntegerField()
     quantity = models.IntegerField()
+    discounted_price = models.IntegerField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     @property
@@ -94,3 +95,21 @@ class ProductHistory(models.Model):
 
     def __str__(self):
         return f"Product: {self.product.name}"
+    
+class Discount(models.Model):
+    
+    FIXED = 'FIXED'
+    PERCENTAGE = 'PERCENTAGE'
+
+    DISCOUNT_TYPES = [
+        (FIXED, 'Fixed'),
+        (PERCENTAGE, 'Percentage'),
+    ]
+
+    name = models.CharField(max_length=256)
+    type = models.CharField(max_length=20, choices=DISCOUNT_TYPES)
+    value = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name

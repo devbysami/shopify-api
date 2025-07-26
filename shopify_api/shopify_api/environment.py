@@ -1,0 +1,10 @@
+CELERY_BROKER_URL = 'redis://shopify-redis:6379/0'
+CELERY_ACCEPT_CONTENT = ['application/json'] 
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'redis://shopify-redis:6379/0'
+CELERY_TIMEZONE = 'UTC'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+EMAIL = "samuamir555@gmail.com"
+EMAIL_PASSWORD = "seal dbma bodi wslc"

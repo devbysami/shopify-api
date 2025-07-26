@@ -6,5 +6,5 @@ CELERY_TIMEZONE = 'UTC'
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
-EMAIL = "samuamir555@gmail.com"
-EMAIL_PASSWORD = "seal dbma bodi wslc"
+EMAIL = ""
+EMAIL_PASSWORD = ""

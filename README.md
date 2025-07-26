@@ -52,9 +52,6 @@ A simplified Celery task chain runs nightly:
     - Endpoint: **GET /products/insights/**
     - Returns insights such as low-stock percentage and trending products based on recent stock changes.
 
-- **AI Code Review (Leadership)**:
-    - **Audit AI-generated code** for security risks (e.g., ensuring no secrets are included in prompts).
-
 ---
 
 ## Technical Considerations

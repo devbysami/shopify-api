@@ -8,3 +8,5 @@ django-celery-beat
 ipython==7.16.3
 pandas==1.1.5
 openpyxl==3.1.3
+sentence-transformers==2.2.2
+spacy==3.6.1

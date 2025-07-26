@@ -9,10 +9,6 @@ import traceback
 
 class GenerateToken(APIView):
     
-    """
-    View to obtain token for the provided username and password.
-    """
-    
     def get_user(self, username, password):
         
         try:

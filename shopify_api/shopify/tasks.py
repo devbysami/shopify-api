@@ -8,6 +8,11 @@ from django.utils import timezone
 from datetime import timedelta
 from core.email_util import send_email
 import traceback
+from django.db import transaction
+import logging
+
+log = logging.getLogger("django")
+
 
 @app.task(bind=True)
 def async_import_mock_products_file(self, file_path):
@@ -18,21 +23,24 @@ def async_import_mock_products_file(self, file_path):
     )
     
     try:
-    
-        if not os.path.exists(file_path):
-            mock_product_obj.status = MockProductData.FAILED
-            mock_product_obj.failure_reason = f"Failed to import file. No file on path {file_path}"
-            mock_product_obj.save()
-            
-        with open(file_path, 'rb') as f:
-            
-            file_name = os.path.basename(file_path)
-            file = File(f, name=file_name)
-            
-            mock_product_obj.file.save(file_name, file)
-            mock_product_obj.save()
+        
+        with transaction.atomic():
+        
+            if not os.path.exists(file_path):
+                mock_product_obj.status = MockProductData.FAILED
+                mock_product_obj.failure_reason = f"Failed to import file. No file on path {file_path}"
+                mock_product_obj.save()
+                
+            with open(file_path, 'rb') as f:
+                
+                file_name = os.path.basename(file_path)
+                file = File(f, name=file_name)
+                
+                mock_product_obj.file.save(file_name, file)
+                mock_product_obj.save()
     
     except Exception as e:
+        log.exception(traceback.format_exc())
         mock_product_obj.status = MockProductData.FAILED
         mock_product_obj.failure_reason = str(e)
         mock_product_obj.save()
@@ -51,103 +59,99 @@ def async_validate_and_populate_mock_products(self, mock_data_id):
     
     try:
         
-        file_path = mock_data.file.path
-        df = pd.read_csv(file_path)
+        with transaction.atomic():
         
-        required_columns = ['sku', 'name', 'quantity', 'price']
-        df.columns = df.columns.str.lower()
-        
-        for col in required_columns:
+            file_path = mock_data.file.path
+            df = pd.read_csv(file_path)
             
-            if col not in df.columns:
+            required_columns = ['sku', 'name', 'quantity', 'price']
+            df.columns = df.columns.str.lower()
+            
+            for col in required_columns:
                 
-                mock_data.status = MockProductData.FAILED
-                mock_data.failure_reason = f"Missing column: {col}"
-                mock_data.save()
-                return
-        
-        updated_products = []
-        newly_created_products = []
-        discarded_products = []
-        
-        for index, row in df.iterrows():
-            
-            if row.isnull().all():
-                continue
-            
-            if not row['sku'] or not row['name'] or pd.isnull(row['quantity']) or pd.isnull(row['price']):
-                discarded_products.append(row.to_dict())
-                continue
-            
-            product_data = {
-                'sku': row['sku'],
-                'name': row['name'],
-                'quantity': row['quantity'],
-                'price': row['price']
-            }
-            
-            existing_product = Product.objects.filter(sku=row['sku'])
-            
-            if existing_product.exists():
-                
-                existing_product = existing_product.first()
-                
-                changes = []
-                
-                if existing_product.quantity != row['quantity']:
-                    changes.append(f"Quantity From: {existing_product.quantity} >>> To: {row['quantity']}")
+                if col not in df.columns:
                     
-                if existing_product.price != row['price']:
-                    changes.append(f"Price From: {existing_product.price} >>> To: {row['price']}")
+                    mock_data.status = MockProductData.FAILED
+                    mock_data.failure_reason = f"Missing column: {col}"
+                    mock_data.save()
+                    return
+            
+            updated_products = []
+            newly_created_products = []
+            discarded_products = []
+            
+            for index, row in df.iterrows():
                 
-                if changes:
-                    
-                    updated_products.append({
-                        'sku': existing_product.sku,
-                        'name': existing_product.name,
-                        'changes': "\n".join(changes),
-                    })
-                
-                    existing_product.quantity = row['quantity']
-                    existing_product.price = row['price']
-                    existing_product.save()
-                                
-            else:
-                
-                serializer = ProductSerializer(data=product_data)
-                
-                if not serializer.is_valid():
-                    discarded_products.append(product_data)
+                if row.isnull().all():
                     continue
+                
+                if not row['sku'] or not row['name'] or pd.isnull(row['quantity']) or pd.isnull(row['price']):
+                    discarded_products.append(row.to_dict())
+                    continue
+                
+                product_data = {
+                    'sku': row['sku'],
+                    'name': row['name'],
+                    'quantity': row['quantity'],
+                    'price': row['price']
+                }
+                
+                existing_product = Product.objects.filter(sku=row['sku'])
+                
+                if existing_product.exists():
                     
-                serializer.save()
-                
-                newly_created_products.append({
-                    'sku': serializer.instance.sku,
-                    'name': serializer.instance.name,
-                    'price': serializer.instance.price,
-                    'quantity': serializer.instance.quantity,
-                })
-                
-                                            
-        mock_data.status = MockProductData.COMPLETED
-        
-        print("THESE ARE NEW CREATED")
-        print(newly_created_products)
-        
-        print("These are updated")
-        print(updated_products)
-        
-        mock_data.changes_summary = {
-            'created': newly_created_products,
-            'updated': updated_products,
-            'discarded': discarded_products,
-        }
-        mock_data.save()
+                    existing_product = existing_product.first()
+                    
+                    changes = []
+                    
+                    if existing_product.quantity != row['quantity']:
+                        changes.append(f"Quantity From: {existing_product.quantity} >>> To: {row['quantity']}")
+                        
+                    if existing_product.price != row['price']:
+                        changes.append(f"Price From: {existing_product.price} >>> To: {row['price']}")
+                    
+                    if changes:
+                        
+                        updated_products.append({
+                            'sku': existing_product.sku,
+                            'name': existing_product.name,
+                            'changes': "\n".join(changes),
+                        })
+                    
+                        existing_product.quantity = row['quantity']
+                        existing_product.price = row['price']
+                        existing_product.save()
+                                    
+                else:
+                    
+                    serializer = ProductSerializer(data=product_data)
+                    
+                    if not serializer.is_valid():
+                        discarded_products.append(product_data)
+                        continue
+                        
+                    serializer.save()
+                    
+                    newly_created_products.append({
+                        'sku': serializer.instance.sku,
+                        'name': serializer.instance.name,
+                        'price': serializer.instance.price,
+                        'quantity': serializer.instance.quantity,
+                    })
+                    
+                                                
+            mock_data.status = MockProductData.COMPLETED
+            
+            mock_data.changes_summary = {
+                'created': newly_created_products,
+                'updated': updated_products,
+                'discarded': discarded_products,
+            }
+            mock_data.save()
     
     except Exception as e:
         
-        print(traceback.format_exc())
+        log.exception(traceback.format_exc())
         
         mock_data.status = MockProductData.FAILED
         mock_data.failure_reason = str(e)

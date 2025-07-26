@@ -1,7 +1,6 @@
 
 # Shopify API
 
-**Version 2.3** (updated April 11, 2025)
 
 This repository contains the implementation of a backend system using **Python**, **Django**, and **Django REST Framework** that integrates with **Shopify**. The backend manages basic product data, handles webhook callbacks, performs scheduled nightly tasks, and integrates AI features for product search and insights.
 
@@ -15,13 +14,10 @@ The following CRUD operations are available for managing products:
 
 - **GET /products/**: List all products or filter by price, SKU, name, or quantity.
 - **POST /products/**: Create a new product.
-- **GET /products/{id}/**: Retrieve a specific product by ID.
-- **PUT /products/{id}/**: Update an existing product by ID.
-- **DELETE /products/{id}/**: Delete a product by ID.
 - **GET /products/search/?q=...**: Search for products using semantic similarity based on the product name using **spaCy** or **Sentence-Transformers**.
 
 ### 2. **Webhook Endpoint**
-- **POST /webhooks/update-stock/**: Handle inventory updates from Shopify, updating the product quantity based on the payload received from the webhook.
+- **PUT /webhooks/update-stock/**: Handle inventory updates from Shopify, updating the product quantity based on the payload received from the webhook.
 
 ### 3. **Admin Interface Customization**
 

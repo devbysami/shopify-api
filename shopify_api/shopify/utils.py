@@ -72,7 +72,7 @@ def detect_trending_products(top_n=10):
     
     one_week_ago = timezone.now() - timedelta(days=7)
     
-    stock_changes = ProductHistory.objects.filter(updated_at__gte=one_week_ago)
+    stock_changes = ProductHistory.objects.filter(updated_at__gte=one_week_ago).select_related('product')
     
     product_changes = defaultdict(int)
     

@@ -35,7 +35,7 @@ class Product(models.Model):
             elif previous_instance.price != self.price:
                 ProductHistory.objects.create(
                     product=self,
-                    previous_quantity=previous_instance.quantity,
+                    previous_quantity=previous_instance.price,
                     current_quantity=self.quantity,
                     type=ProductHistory.PRICE_CHANGE
                 )

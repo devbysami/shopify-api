@@ -36,7 +36,7 @@ class Product(models.Model):
                 ProductHistory.objects.create(
                     product=self,
                     previous_quantity=previous_instance.price,
-                    current_quantity=self.quantity,
+                    current_quantity=self.price,
                     type=ProductHistory.PRICE_CHANGE
                 )
         
